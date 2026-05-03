@@ -5,6 +5,12 @@ from typing import Any
 from rich.console import Console
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
+from .sources.court_listener import search_courtlistener
+from .sources.github_search import search_github
+from .sources.hacker_news import search_hn
+from .sources.reddit import search_reddit
+from .sources.sec_edgar import search_edgar
+from .sources.wayback import get_wayback_snapshots
 from .sources.web_search import search_news, search_web
 from .sources.whois_lookup import lookup_domain
 from .sources.wikipedia import search_wikipedia
@@ -67,6 +73,12 @@ class ResearchEngine:
             "social_media": [],
             "whois": {},
             "domain": self.domain,
+            "hacker_news": [],
+            "reddit": [],
+            "court_records": [],
+            "sec_filings": [],
+            "github": {"users": [], "repos": []},
+            "wayback": [],
         }
 
         with Progress(
@@ -100,6 +112,35 @@ class ResearchEngine:
                 if self.domain:
                     data["whois"] = lookup_domain(self.domain)
                 progress.update(t4, description="[green]Domain lookup done")
+
+            t5 = progress.add_task("Searching Hacker News...", total=None)
+            data["hacker_news"] = search_hn(self.target, self.max_results)
+            progress.update(t5, description="[green]Hacker News done")
+
+            t6 = progress.add_task("Searching Reddit...", total=None)
+            data["reddit"] = search_reddit(f'"{self.target}"', self.max_results)
+            progress.update(t6, description="[green]Reddit done")
+
+            t7 = progress.add_task("Searching court records...", total=None)
+            data["court_records"] = search_courtlistener(
+                f'"{self.target}"', self.max_results
+            )
+            progress.update(t7, description="[green]Court records done")
+
+            t8 = progress.add_task("Searching SEC EDGAR...", total=None)
+            data["sec_filings"] = search_edgar(self.target, self.max_results)
+            progress.update(t8, description="[green]SEC EDGAR done")
+
+            t9 = progress.add_task("Searching GitHub...", total=None)
+            data["github"] = search_github(self.target, max_results=5)
+            progress.update(t9, description="[green]GitHub done")
+
+            if self.target_type == "business" and self.domain:
+                t10 = progress.add_task(
+                    "Fetching Wayback Machine snapshots...", total=None
+                )
+                data["wayback"] = get_wayback_snapshots(self.domain, limit=15)
+                progress.update(t10, description="[green]Wayback done")
 
         return data
 

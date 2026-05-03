@@ -137,4 +137,77 @@ def _format_research_data(data: dict) -> str:
                 parts.append(f"{k.title().replace('_', ' ')}: {v}")
             parts.append("")
 
+    if data.get("hacker_news"):
+        parts.append("=== HACKER NEWS MENTIONS ===")
+        for h in data["hacker_news"][:10]:
+            parts.append(f"Title:    {h.get('title', '')}")
+            parts.append(f"Date:     {h.get('date', '')}")
+            parts.append(f"Points:   {h.get('points', 0)}  Comments: {h.get('comments', 0)}")
+            parts.append(f"URL:      {h.get('url', '')}")
+            parts.append("")
+
+    if data.get("reddit"):
+        parts.append("=== REDDIT POSTS ===")
+        for p in data["reddit"][:10]:
+            parts.append(f"Title:    {p.get('title', '')}")
+            parts.append(f"Subreddit: r/{p.get('subreddit', '')}")
+            parts.append(f"Score:    {p.get('score', 0)}  Comments: {p.get('comments', 0)}")
+            parts.append(f"URL:      {p.get('url', '')}")
+            snippet = p.get("snippet", "")
+            if snippet:
+                parts.append(f"Snippet:  {snippet}")
+            parts.append("")
+
+    if data.get("court_records"):
+        parts.append("=== COURT RECORDS (CourtListener) ===")
+        for c in data["court_records"][:10]:
+            parts.append(f"Case:    {c.get('case_name', '')}")
+            parts.append(f"Court:   {c.get('court', '')}")
+            parts.append(f"Date:    {c.get('date', '')}")
+            parts.append(f"URL:     {c.get('url', '')}")
+            snippet = c.get("snippet", "")
+            if snippet:
+                parts.append(f"Snippet: {snippet}")
+            parts.append("")
+
+    if data.get("sec_filings"):
+        parts.append("=== SEC EDGAR FILINGS ===")
+        for f in data["sec_filings"][:10]:
+            parts.append(f"Form:     {f.get('form', '')}")
+            parts.append(f"Filed:    {f.get('filed', '')}")
+            parts.append(f"Filer:    {f.get('company', '')}")
+            parts.append(f"Acc. No.: {f.get('accession', '')}")
+            if f.get("url"):
+                parts.append(f"URL:      {f.get('url', '')}")
+            parts.append("")
+
+    gh = data.get("github") or {}
+    if gh.get("users") or gh.get("repos"):
+        parts.append("=== GITHUB ===")
+        for u in gh.get("users", [])[:5]:
+            parts.append(
+                f"User: {u.get('login', '')} ({u.get('type', '')}) - {u.get('url', '')}"
+            )
+        for r in gh.get("repos", [])[:5]:
+            parts.append(
+                f"Repo: {r.get('name', '')} "
+                f"[{r.get('language', '') or 'unknown'}, ★{r.get('stars', 0)}] "
+                f"- {r.get('description', '')}"
+            )
+            parts.append(f"      {r.get('url', '')}")
+        parts.append("")
+
+    if data.get("wayback"):
+        parts.append("=== WAYBACK MACHINE SNAPSHOTS ===")
+        snaps = data["wayback"]
+        first, last = snaps[0], snaps[-1]
+        parts.append(
+            f"Earliest snapshot: {first.get('timestamp', '')}  {first.get('snapshot_url', '')}"
+        )
+        parts.append(
+            f"Latest snapshot:   {last.get('timestamp', '')}  {last.get('snapshot_url', '')}"
+        )
+        parts.append(f"Total snapshots sampled: {len(snaps)}")
+        parts.append("")
+
     return "\n".join(parts)

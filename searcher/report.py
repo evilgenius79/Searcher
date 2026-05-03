@@ -16,6 +16,13 @@ def print_data_summary(data: dict, console: Console) -> None:
             v for v in data["whois"].values() if v and v != "None"
         )
     )
+    hn_count = len(data.get("hacker_news", []))
+    reddit_count = len(data.get("reddit", []))
+    court_count = len(data.get("court_records", []))
+    sec_count = len(data.get("sec_filings", []))
+    gh = data.get("github", {}) or {}
+    gh_count = len(gh.get("users", [])) + len(gh.get("repos", []))
+    wayback_count = len(data.get("wayback", []))
 
     table.add_row("Web search results", str(web_count))
     table.add_row("News articles", str(news_count))
@@ -28,6 +35,13 @@ def print_data_summary(data: dict, console: Console) -> None:
         domain = data.get("domain", "")
         label = f"WHOIS ({domain})" if domain else "WHOIS"
         table.add_row(label, "Found" if whois_hit else "Not found")
+        table.add_row("Wayback snapshots", str(wayback_count))
+
+    table.add_row("Hacker News mentions", str(hn_count))
+    table.add_row("Reddit posts", str(reddit_count))
+    table.add_row("Court records (CourtListener)", str(court_count))
+    table.add_row("SEC EDGAR filings", str(sec_count))
+    table.add_row("GitHub users + repos", str(gh_count))
 
     console.print(table)
 
